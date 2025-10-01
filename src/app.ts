@@ -9,12 +9,13 @@ import mongoose from 'mongoose';
 
 // Import all your models
 import { Category } from './../models/Category.js';
-import { Course } from './../models/Course.js';
+import { Course, CourseSection  } from './../models/Course.js';
 import { CourseProgress } from './../models/CourseProgress.js';
 import { CourseReview } from './../models/CourseReview.js';
 import { Documentation } from './../models/Documentation.js';
 import { Enrollment } from './../models/Enrollment.js';
 import { User } from './../models/User.js';
+import { Purchase } from './../models/Purchase.js'; // Add the new Purchase model
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ const initializeDb = async () => {
       CourseProgress: CourseProgress.modelName,
       CourseReview: CourseReview.modelName,
       Enrollment: Enrollment.modelName,
+      Purchase: Purchase.modelName, // Add Purchase to verification
     });
   } catch (error) {
     console.error('❌ Database connection error:', error);
@@ -80,21 +82,21 @@ const start = async () => {
     // Add explicit database configuration
     databases: [mongoose],
     resources: [
-      // Categories Management
+      // Categories Management - Updated Configuration
       {
         resource: Category,
         options: {
-          navigation: { 
-            name: 'Content Management', 
+          navigation: {
+            name: 'Content Management',
             icon: 'Grid',
-            show: true // Explicitly show navigation
+            show: true,
           },
-          id: 'categories', // Add explicit ID
-          listProperties: ['title', 'slug', 'description', 'order', 'createdAt'],
-          filterProperties: ['title', 'slug'],
+          id: 'categories',
+          listProperties: ['title', 'slug', 'description', 'bgColor', 'order', 'createdAt'],
+          filterProperties: ['title', 'slug', 'bgColor'],
           editProperties: ['title', 'slug', 'description', 'content', 'bgColor', 'icon', 'order'],
           properties: {
-            title: { 
+            title: {
               isTitle: true,
               description: 'Category name',
             },
@@ -110,10 +112,35 @@ const start = async () => {
               description: 'Detailed category content',
             },
             bgColor: {
-              description: 'CSS gradient or color classes',
+              type: 'select',
+              availableValues: [
+                { value: 'LightBlue', label: 'Light Blue' },
+                { value: 'SoftGreen', label: 'Soft Green' },
+                { value: 'PaleRose', label: 'Pale Rose' },
+                { value: 'LavenderGray', label: 'Lavender Gray' },
+                { value: 'WarmBeige', label: 'Warm Beige' },
+                { value: 'SoftPink', label: 'Soft Pink' },
+                { value: 'PaleIndigo', label: 'Pale Indigo' },
+                { value: 'MintGreen', label: 'Mint Green' },
+                { value: 'Peach', label: 'Peach' },
+                { value: 'SoftTeal', label: 'Soft Teal' },
+              ],
+              description: 'Select subtle background color for the category',
             },
             icon: {
-              description: 'Icon identifier',
+              type: 'select',
+              availableValues: [
+                { value: 'Code', label: 'Code' },
+                { value: 'Database', label: 'Database' },
+                { value: 'Brain', label: 'Brain' },
+                { value: 'Globe', label: 'Globe' },
+                { value: 'Server', label: 'Server' },
+                { value: 'Laptop', label: 'Laptop' },
+                { value: 'Users', label: 'Users' },
+                { value: 'BookOpen', label: 'BookOpen' },
+                { value: 'Award', label: 'Award' },
+              ],
+              description: 'Select icon for the category',
             },
             order: {
               type: 'number',
@@ -128,18 +155,26 @@ const start = async () => {
           },
         },
       },
-
       // Courses Management
       {
         resource: Course,
         options: {
-          navigation: { 
-            name: 'Content Management', 
+          navigation: {
+            name: 'Content Management',
             icon: 'BookOpen',
-            show: true
+            show: true,
           },
           id: 'courses',
-          listProperties: ['title', 'categoryId', 'level', 'rating', 'studentCount', 'isPremium', 'isPublished', 'createdAt'],
+          listProperties: [
+            'title',
+            'categoryId',
+            'level',
+            'rating',
+            'studentCount',
+            'isPremium',
+            'isPublished',
+            'createdAt',
+          ],
           filterProperties: ['title', 'level', 'categoryId', 'isPremium', 'isPublished', 'instructor'],
           editProperties: [
             'title',
@@ -153,10 +188,10 @@ const start = async () => {
             'bgColor',
             'price',
             'isPremium',
-            'isPublished'
+            'isPublished',
           ],
           properties: {
-            title: { 
+            title: {
               isTitle: true,
               description: 'Course title',
             },
@@ -188,9 +223,24 @@ const start = async () => {
               type: 'number',
               description: 'Course price (leave empty for free)',
             },
+
             bgColor: {
-              description: 'Tailwind CSS gradient classes',
+              type: 'select',
+              availableValues: [
+                { value: 'LightBlue', label: 'Light Blue' },
+                { value: 'SoftGreen', label: 'Soft Green' },
+                { value: 'PaleRose', label: 'Pale Rose' },
+                { value: 'LavenderGray', label: 'Lavender Gray' },
+                { value: 'WarmBeige', label: 'Warm Beige' },
+                { value: 'SoftPink', label: 'Soft Pink' },
+                { value: 'PaleIndigo', label: 'Pale Indigo' },
+                { value: 'MintGreen', label: 'Mint Green' },
+                { value: 'Peach', label: 'Peach' },
+                { value: 'SoftTeal', label: 'Soft Teal' },
+              ],
+              description: 'Select subtle background color for the category',
             },
+           
             instructor: {
               description: 'Course instructor name',
             },
@@ -215,18 +265,70 @@ const start = async () => {
         },
       },
 
-      // Documentation Management
+      // Course section resources
+      {
+        resource: CourseSection,
+        options: {
+          navigation: {
+            name: 'Content Management',
+            icon: 'FileText',
+            show: true,
+          },
+          id: 'course-sections',
+          listProperties: ['title', 'courseId', 'order', 'createdAt'],
+          filterProperties: ['title', 'courseId'],
+          editProperties: ['title', 'content', 'courseId', 'order'],
+          showProperties: ['title', 'content', 'courseId', 'order', 'createdAt', 'updatedAt'],
+          properties: {
+            title: {
+              isTitle: true,
+              description: 'Section title',
+            },
+            content: {
+              type: 'textarea',
+              description: 'Section content (supports Markdown formatting: # Headers, ## Subheaders, - Bullets, **Bold**, etc.)',
+              props: {
+                rows: 15, 
+              },
+            },
+            courseId: {
+              reference: 'courses',
+              description: 'Course this section belongs to',
+            },
+            order: {
+              type: 'number',
+              description: 'Display order within the course (1, 2, 3...)',
+            },
+            createdAt: {
+              isVisible: { edit: false, new: false },
+            },
+            updatedAt: {
+              isVisible: { edit: false, new: false },
+            },
+          },
+          actions: {
+            delete: {
+              guard: 'Are you sure you want to delete this course section? This action cannot be undone.',
+            },
+          },
+          sort: {
+            sortBy: 'order',
+            direction: 'asc',
+          },
+        },
+      },
+
       {
         resource: Documentation,
         options: {
-          navigation: { 
-            name: 'Documentation', 
+          navigation: {
+            name: 'Documentation',
             icon: 'Book',
-            show: true
+            show: true,
           },
           id: 'documentation',
-          listProperties: ['title', 'category', 'slug', 'readTime', 'isPublished', 'updatedAt'],
-          filterProperties: ['title', 'category', 'isPublished'],
+          listProperties: ['title', 'category', 'slug', 'readTime', 'price', 'isPublished', 'updatedAt'],
+          filterProperties: ['title', 'category', 'isPublished', 'price'],
           editProperties: [
             'title',
             'slug',
@@ -236,36 +338,115 @@ const start = async () => {
             'readTime',
             'keyFeatures',
             'codeExamples',
-            'quickLinks',
+            'documentSections',
             'proTip',
-            'isPublished'
+            // New pricing fields
+            'price',
+            'currency',
+            'stripePriceId',
+            'isPublished',
+          ],
+          showProperties: [
+            'title',
+            'slug',
+            'category',
+            'description',
+            'content',
+            'readTime',
+            'keyFeatures',
+            'codeExamples',
+            'documentSections',
+            'proTip',
+            // New pricing fields
+            'price',
+            'currency', 
+            'stripePriceId',
+            'isPublished',
+            'createdAt',
+            'updatedAt',
           ],
           properties: {
-            title: { 
+            title: {
               isTitle: true,
               description: 'Documentation title',
             },
             slug: {
-              description: 'URL slug (lowercase, no spaces)',
+              description: 'URL slug (lowercase, no spaces, used in URL: /docs/your-slug)',
             },
             category: {
-              description: 'Documentation category',
+              reference: 'categories',
+              description: 'Documentation category - select from existing categories',
+            },
+            description: {
+              type: 'textarea',
+              description: 'Brief description shown in cards and previews',
+              props: {
+                rows: 3,
+              },
             },
             content: {
               type: 'textarea',
-              description: 'Main documentation content',
+              description: 'Main documentation content (supports Markdown: # Headers, ## Subheaders, **Bold**, `code`, etc.)',
+              props: {
+                rows: 15,
+              },
+            },
+            readTime: {
+              description: 'Estimated reading time (e.g., "5 minutes", "10 min read")',
             },
             keyFeatures: {
               type: 'mixed',
-              description: 'Array of key features',
+              description: 'Array of key features/highlights (JSON format: ["Feature 1", "Feature 2", "Feature 3"])',
             },
             codeExamples: {
               type: 'mixed',
-              description: 'Code examples with title, code, and description',
+              description: 'Code examples array (JSON format: [{"title": "Example Title", "code": "console.log(\'Hello\');", "description": "Example description"}])',
             },
-            quickLinks: {
+            documentSections: {
+              reference: 'documentation',
+              isArray: true,
+              description: 'Related documentation sections - select existing documentation to reference as sections',
+              props: {
+                multiple: true,
+              },
+            },
+            proTip: {
               type: 'textarea',
-              description: 'Quick navigation links (JSON format: [{"title": "Link Name", "url": "/path", "description": "Link description"}])',
+              description: 'Professional tip or advice shown in sidebar',
+              props: {
+                rows: 3,
+              },
+            },
+            // New pricing fields
+            price: {
+              type: 'number',
+              description: 'Price in USD (e.g., 29.99). Leave empty or set to 0 for free content.',
+              props: {
+                step: 0.01,
+                min: 0,
+                placeholder: '0.00',
+              },
+            },
+            currency: {
+              type: 'select',
+              availableValues: [
+                { value: 'usd', label: 'USD ($)' },
+                { value: 'eur', label: 'EUR (€)' },
+                { value: 'gbp', label: 'GBP (£)' },
+                { value: 'cad', label: 'CAD ($)' },
+                { value: 'aud', label: 'AUD ($)' },
+              ],
+              description: 'Currency for pricing. Defaults to USD if not specified.',
+            },
+            stripePriceId: {
+              type: 'string',
+              description: 'Stripe Price ID from your Stripe dashboard (starts with "price_"). Required for paid content.',
+              props: {
+                placeholder: 'price_1234567890abcdef',
+              },
+            },
+            isPublished: {
+              description: 'Make this documentation visible to users',
             },
             createdAt: {
               isVisible: { edit: false, new: false },
@@ -274,6 +455,326 @@ const start = async () => {
               isVisible: { edit: false, new: false },
             },
           },
+          actions: {
+            delete: {
+              guard: 'Are you sure you want to delete this documentation? This action cannot be undone.',
+            },
+            // Updated custom action for better section management
+            manageHierarchy: {
+              actionType: 'record',
+              icon: 'GitBranch',
+              label: 'View Hierarchy',
+              handler: async (request, response, context) => {
+                const { record, resource } = context;
+                if (record) {
+                  try {
+                    // Get the mongoose model from the resource
+                    const DocumentationModel = resource._decorated.model;
+                    
+                    // Populate both category and document sections to show complete info
+                    const populatedRecord = await DocumentationModel.findById(record.id())
+                      .populate('category', 'title slug')
+                      .populate('documentSections', 'title slug category');
+                    
+                    const sections = populatedRecord?.documentSections || [];
+                    const categoryInfo = populatedRecord?.category ? 
+                      `Category: ${populatedRecord.category.title} (${populatedRecord.category.slug})` : 
+                      'Category: Not assigned';
+                    
+                    const hierarchyInfo = sections.map((section, index) => 
+                      `${index + 1}. ${section.title} (${section.slug})`
+                    ).join('\n');
+                    
+                    const fullMessage = [
+                      categoryInfo,
+                      '',
+                      sections.length > 0 
+                        ? `Document Sections (${sections.length}):\n${hierarchyInfo}`
+                        : 'No document sections configured for this documentation.'
+                    ].join('\n');
+                    
+                    return {
+                      notice: {
+                        message: fullMessage,
+                        type: 'success',
+                      },
+                    };
+                  } catch (error) {
+                    console.error('Error in manageHierarchy:', error);
+                    return {
+                      notice: {
+                        message: `Error loading hierarchy: ${error.message}`,
+                        type: 'error',
+                      },
+                    };
+                  }
+                }
+                
+                return {
+                  notice: {
+                    message: 'No record found',
+                    type: 'error',
+                  },
+                };
+              },
+            },
+            // Action to check for circular references
+            validateHierarchy: {
+              actionType: 'record',
+              icon: 'CheckCircle',
+              label: 'Validate Hierarchy',
+              handler: async (request, response, context) => {
+                const { record, resource } = context;
+                if (record && record.params.documentSections) {
+                  try {
+                    // Get the mongoose model from the resource
+                    const DocumentationModel = resource._decorated.model;
+                    
+                    const currentId = record.id();
+                    const sectionIds = record.params.documentSections;
+                    
+                    // Check for self-reference
+                    if (sectionIds.includes(currentId)) {
+                      return {
+                        notice: {
+                          message: 'Circular reference detected: Document cannot reference itself as a section',
+                          type: 'error',
+                        },
+                      };
+                    }
+                    
+                    // Check for mutual references (A->B, B->A)
+                    const sections = await DocumentationModel.find(
+                      { _id: { $in: sectionIds } }, 
+                      'documentSections title'
+                    );
+                    
+                    const mutualRefs = [];
+                    
+                    for (const section of sections) {
+                      if (section.documentSections && section.documentSections.some(id => id.toString() === currentId)) {
+                        mutualRefs.push(section.title);
+                      }
+                    }
+                    
+                    if (mutualRefs.length > 0) {
+                      return {
+                        notice: {
+                          message: `Mutual references detected with: ${mutualRefs.join(', ')}. This may cause navigation issues.`,
+                          type: 'notice',
+                        },
+                      };
+                    }
+                    
+                    return {
+                      notice: {
+                        message: 'Hierarchy validation passed. No circular references found.',
+                        type: 'success',
+                      },
+                    };
+                  } catch (error) {
+                    console.error('Error in validateHierarchy:', error);
+                    return {
+                      notice: {
+                        message: `Error during validation: ${error.message}`,
+                        type: 'error',
+                      },
+                    };
+                  }
+                }
+                
+                return {
+                  notice: {
+                    message: 'No sections to validate',
+                    type: 'notice',
+                  },
+                };
+              },
+            },
+          },
+          sort: {
+            sortBy: 'updatedAt',
+            direction: 'desc',
+          },
+        },
+      },
+
+      // Purchase Management - NEW SECTION
+      {
+        resource: Purchase,
+        options: {
+          navigation: {
+            name: 'E-Commerce',
+            icon: 'CreditCard',
+            show: true,
+          },
+          id: 'purchases',
+          listProperties: [
+            'userId', 
+            'documentId', 
+            'amount', 
+            'currency', 
+            'status', 
+            'purchaseDate', 
+            'stripeSessionId'
+          ],
+          filterProperties: [
+            'userId', 
+            'documentId', 
+            'status', 
+            'currency', 
+            'purchaseDate',
+            'amount'
+          ],
+          editProperties: [
+            'status', 
+            'amount', 
+            'currency'
+          ],
+          showProperties: [
+            'userId',
+            'documentId',
+            'stripeSessionId',
+            'stripePaymentIntentId',
+            'amount',
+            'currency',
+            'status',
+            'purchaseDate',
+            'createdAt',
+            'updatedAt',
+          ],
+          properties: {
+            userId: {
+              reference: 'users',
+              isTitle: true,
+              description: 'User who made the purchase',
+            },
+            documentId: {
+              reference: 'documentation',
+              description: 'Documentation that was purchased',
+            },
+            stripeSessionId: {
+              description: 'Stripe checkout session ID',
+              isVisible: { edit: false, new: false },
+            },
+            stripePaymentIntentId: {
+              description: 'Stripe payment intent ID',
+              isVisible: { edit: false, new: false },
+            },
+            amount: {
+              type: 'number',
+              description: 'Purchase amount (in dollars)',
+              props: {
+                step: 0.01,
+                min: 0,
+              },
+            },
+            currency: {
+              type: 'select',
+              availableValues: [
+                { value: 'usd', label: 'USD ($)' },
+                { value: 'eur', label: 'EUR (€)' },
+                { value: 'gbp', label: 'GBP (£)' },
+                { value: 'cad', label: 'CAD ($)' },
+                { value: 'aud', label: 'AUD ($)' },
+              ],
+              description: 'Purchase currency',
+            },
+            status: {
+              type: 'select',
+              availableValues: [
+                { value: 'pending', label: 'Pending' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'failed', label: 'Failed' },
+                { value: 'refunded', label: 'Refunded' },
+              ],
+              description: 'Purchase status',
+            },
+            purchaseDate: {
+              description: 'Date when purchase was made',
+              isVisible: { edit: false, new: false },
+            },
+            createdAt: {
+              isVisible: { edit: false, new: false },
+            },
+            updatedAt: {
+              isVisible: { edit: false, new: false },
+            },
+          },
+          actions: {
+            new: {
+              isVisible: false, // Disable manual creation
+            },
+            edit: {
+              // Only allow editing status and amounts for refunds/corrections
+              isAccessible: true,
+            },
+            delete: {
+              guard: 'Are you sure you want to delete this purchase record? This action cannot be undone and may affect user access.',
+            },
+            // Custom action to view user's all purchases
+            viewUserPurchases: {
+              actionType: 'record',
+              icon: 'User',
+              label: 'View All User Purchases',
+              handler: async (request, response, context) => {
+                const { record, resource } = context;
+                if (record) {
+                  try {
+                    const PurchaseModel = resource._decorated.model;
+                    const userId = record.params.userId;
+                    
+                    const userPurchases = await PurchaseModel.find({ userId })
+                      .populate('documentId', 'title slug price')
+                      .sort({ purchaseDate: -1 });
+                    
+                    const totalSpent = userPurchases
+                      .filter(p => p.status === 'completed')
+                      .reduce((sum, p) => sum + p.amount, 0);
+                    
+                    const purchaseList = userPurchases.map((p, index) => 
+                      `${index + 1}. ${p.documentId?.title || 'Unknown'} - $${p.amount} (${p.status})`
+                    ).join('\n');
+                    
+                    const message = [
+                      `Total Purchases: ${userPurchases.length}`,
+                      `Total Spent: $${totalSpent.toFixed(2)}`,
+                      `Completed Purchases: ${userPurchases.filter(p => p.status === 'completed').length}`,
+                      '',
+                      'Purchase History:',
+                      purchaseList || 'No purchases found'
+                    ].join('\n');
+                    
+                    return {
+                      notice: {
+                        message: message,
+                        type: 'success',
+                      },
+                    };
+                  } catch (error) {
+                    console.error('Error in viewUserPurchases:', error);
+                    return {
+                      notice: {
+                        message: `Error loading user purchases: ${error.message}`,
+                        type: 'error',
+                      },
+                    };
+                  }
+                }
+                
+                return {
+                  notice: {
+                    message: 'No record found',
+                    type: 'error',
+                  },
+                };
+              },
+            },
+          },
+          sort: {
+            sortBy: 'purchaseDate',
+            direction: 'desc',
+          },
         },
       },
 
@@ -281,17 +782,17 @@ const start = async () => {
       {
         resource: User,
         options: {
-          navigation: { 
-            name: 'User Management', 
+          navigation: {
+            name: 'User Management',
             icon: 'Users',
-            show: true
+            show: true,
           },
           id: 'users',
           listProperties: ['email', 'username', 'firstName', 'lastName', 'role', 'createdAt'],
           filterProperties: ['email', 'username', 'role'],
           editProperties: ['email', 'username', 'firstName', 'lastName', 'role', 'bio'],
           properties: {
-            email: { 
+            email: {
               isTitle: true,
               description: 'User email address',
             },
@@ -345,10 +846,10 @@ const start = async () => {
       {
         resource: CourseProgress,
         options: {
-          navigation: { 
-            name: 'Analytics', 
+          navigation: {
+            name: 'Analytics',
             icon: 'TrendingUp',
-            show: true
+            show: true,
           },
           id: 'course-progress',
           listProperties: ['userId', 'courseId', 'progressPercentage', 'lastAccessedAt'],
@@ -390,10 +891,10 @@ const start = async () => {
       {
         resource: CourseReview,
         options: {
-          navigation: { 
-            name: 'Analytics', 
+          navigation: {
+            name: 'Analytics',
             icon: 'Star',
-            show: true
+            show: true,
           },
           id: 'course-reviews',
           listProperties: ['userId', 'courseId', 'rating', 'createdAt'],
@@ -440,10 +941,10 @@ const start = async () => {
       {
         resource: Enrollment,
         options: {
-          navigation: { 
-            name: 'Analytics', 
+          navigation: {
+            name: 'Analytics',
             icon: 'UserCheck',
-            show: true
+            show: true,
           },
           id: 'enrollments',
           listProperties: ['userId', 'courseId', 'status', 'enrolledAt', 'completedAt'],

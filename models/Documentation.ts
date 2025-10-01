@@ -1,12 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-
 export interface IDocumentation extends Document {
     title: string;
     slug: string;
     description?: string;
     content: string;
-    category: string;
+    category: mongoose.Types.ObjectId; // Reference to Category document
     readTime?: string;
     keyFeatures: string[];
     codeExamples: Array<{
@@ -14,14 +13,18 @@ export interface IDocumentation extends Document {
       code: string;
       description: string;
     }>;
-    quickLinks: string[];
+    documentSections: mongoose.Types.ObjectId[]; // References to other Documentation documents
     proTip?: string;
     isPublished: boolean;
+    // New pricing fields
+    price?: number;
+    currency?: string;
+    stripePriceId?: string;
     createdAt: Date;
     updatedAt: Date;
-  }
-  
-  const DocumentationSchema = new Schema<IDocumentation>({
+}
+
+const DocumentationSchema = new Schema<IDocumentation>({
     title: {
       type: String,
       required: true,
@@ -43,9 +46,9 @@ export interface IDocumentation extends Document {
       required: true,
     },
     category: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
       required: true,
-      trim: true,
     },
     readTime: {
       type: String,
@@ -58,8 +61,9 @@ export interface IDocumentation extends Document {
       code: { type: String, required: true },
       description: { type: String, required: true },
     }],
-    quickLinks: [{
-      type: String,
+    documentSections: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Documentation'
     }],
     proTip: {
       type: String,
@@ -68,9 +72,24 @@ export interface IDocumentation extends Document {
       type: Boolean,
       default: true,
     },
-  }, {
+    // New pricing fields
+    price: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+    currency: {
+      type: String,
+      default: 'usd',
+      lowercase: true,
+      enum: ['usd', 'eur', 'gbp', 'cad', 'aud'], // Add more currencies as needed
+    },
+    stripePriceId: {
+      type: String,
+      trim: true,
+    },
+}, {
     timestamps: true,
-  });
-  
-  export const Documentation = mongoose.models.Documentation || mongoose.model<IDocumentation>('Documentation', DocumentationSchema);
-  
+});
+
+export const Documentation = mongoose.models.Documentation || mongoose.model<IDocumentation>('Documentation', DocumentationSchema);
