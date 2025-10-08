@@ -156,114 +156,166 @@ const start = async () => {
         },
       },
       // Courses Management
-      {
-        resource: Course,
-        options: {
-          navigation: {
-            name: 'Content Management',
-            icon: 'BookOpen',
-            show: true,
-          },
-          id: 'courses',
-          listProperties: [
-            'title',
-            'categoryId',
-            'level',
-            'rating',
-            'studentCount',
-            'isPremium',
-            'isPublished',
-            'createdAt',
-          ],
-          filterProperties: ['title', 'level', 'categoryId', 'isPremium', 'isPublished', 'instructor'],
-          editProperties: [
-            'title',
-            'description',
-            'categoryId',
-            'level',
-            'rating',
-            'studentCount',
-            'duration',
-            'instructor',
-            'bgColor',
-            'price',
-            'isPremium',
-            'isPublished',
-          ],
-          properties: {
-            title: {
-              isTitle: true,
-              description: 'Course title',
-            },
-            description: {
-              type: 'textarea',
-              description: 'Detailed course description',
-            },
-            categoryId: {
-              reference: 'categories',
-              description: 'Course category',
-            },
-            level: {
-              availableValues: [
-                { value: 'BEGINNER', label: 'Beginner' },
-                { value: 'INTERMEDIATE', label: 'Intermediate' },
-                { value: 'ADVANCED', label: 'Advanced' },
-                { value: 'BEGINNER_TO_ADVANCE', label: 'Beginner to Advance' },
-              ],
-            },
-            rating: {
-              type: 'number',
-              description: 'Course rating (0-5)',
-            },
-            studentCount: {
-              type: 'number',
-              description: 'Number of enrolled students',
-            },
-            price: {
-              type: 'number',
-              description: 'Course price (leave empty for free)',
-            },
-
-            bgColor: {
-              type: 'select',
-              availableValues: [
-                { value: 'LightBlue', label: 'Light Blue' },
-                { value: 'SoftGreen', label: 'Soft Green' },
-                { value: 'PaleRose', label: 'Pale Rose' },
-                { value: 'LavenderGray', label: 'Lavender Gray' },
-                { value: 'WarmBeige', label: 'Warm Beige' },
-                { value: 'SoftPink', label: 'Soft Pink' },
-                { value: 'PaleIndigo', label: 'Pale Indigo' },
-                { value: 'MintGreen', label: 'Mint Green' },
-                { value: 'Peach', label: 'Peach' },
-                { value: 'SoftTeal', label: 'Soft Teal' },
-              ],
-              description: 'Select subtle background color for the category',
-            },
-           
-            instructor: {
-              description: 'Course instructor name',
-            },
-            isPremium: {
-              description: 'Is this a premium course?',
-            },
-            isPublished: {
-              description: 'Is course published and visible to users?',
-            },
-            createdAt: {
-              isVisible: { edit: false, new: false },
-            },
-            updatedAt: {
-              isVisible: { edit: false, new: false },
-            },
-          },
-          actions: {
-            delete: {
-              guard: 'Are you sure you want to delete this course?',
-            },
-          },
+      // Courses Management - UPDATED Configuration
+{
+  resource: Course,
+  options: {
+    navigation: {
+      name: 'Content Management',
+      icon: 'BookOpen',
+      show: true,
+    },
+    id: 'courses',
+    listProperties: [
+      'title',
+      'categoryId',
+      'level',
+      'rating',
+      'studentCount',
+      'price',
+      'isPremium',
+      'isPublished',
+      'createdAt',
+    ],
+    filterProperties: [
+      'title', 
+      'level', 
+      'categoryId', 
+      'isPremium', 
+      'isPublished', 
+      'instructor',
+      'price'
+    ],
+    editProperties: [
+      'title',
+      'description',
+      'categoryId',
+      'level',
+      'rating',
+      'studentCount',
+      'duration',
+      'instructor',
+      'bgColor',
+      'price',
+      'currency',
+      'stripePriceId',
+      'isPremium',
+      'isPublished',
+    ],
+    showProperties: [
+      'title',
+      'description',
+      'categoryId',
+      'level',
+      'rating',
+      'studentCount',
+      'duration',
+      'instructor',
+      'bgColor',
+      'price',
+      'currency',
+      'stripePriceId',
+      'isPremium',
+      'isPublished',
+      'createdAt',
+      'updatedAt',
+    ],
+    properties: {
+      title: {
+        isTitle: true,
+        description: 'Course title',
+      },
+      description: {
+        type: 'textarea',
+        description: 'Detailed course description',
+      },
+      categoryId: {
+        reference: 'categories',
+        description: 'Course category',
+      },
+      level: {
+        availableValues: [
+          { value: 'BEGINNER', label: 'Beginner' },
+          { value: 'INTERMEDIATE', label: 'Intermediate' },
+          { value: 'ADVANCED', label: 'Advanced' },
+          { value: 'BEGINNER_TO_ADVANCE', label: 'Beginner to Advance' },
+        ],
+      },
+      rating: {
+        type: 'number',
+        description: 'Course rating (0-5)',
+      },
+      studentCount: {
+        type: 'number',
+        description: 'Number of enrolled students',
+      },
+      price: {
+        type: 'number',
+        description: 'Course price (leave empty or set to 0 for free courses)',
+        props: {
+          step: 0.01,
+          min: 0,
+          placeholder: '0.00',
         },
       },
+      currency: {
+        type: 'select',
+        availableValues: [
+          { value: 'usd', label: 'USD ($)' },
+          { value: 'eur', label: 'EUR (€)' },
+          { value: 'gbp', label: 'GBP (£)' },
+          { value: 'cad', label: 'CAD ($)' },
+          { value: 'aud', label: 'AUD ($)' },
+        ],
+        description: 'Currency for pricing. Defaults to USD if not specified.',
+      },
+      stripePriceId: {
+        type: 'string',
+        description: 'Stripe Price ID from your Stripe dashboard (starts with "price_"). Required for paid courses.',
+        props: {
+          placeholder: 'price_1234567890abcdef',
+        },
+      },
+      bgColor: {
+        type: 'select',
+        availableValues: [
+          { value: 'LightBlue', label: 'Light Blue' },
+          { value: 'SoftGreen', label: 'Soft Green' },
+          { value: 'PaleRose', label: 'Pale Rose' },
+          { value: 'LavenderGray', label: 'Lavender Gray' },
+          { value: 'WarmBeige', label: 'Warm Beige' },
+          { value: 'SoftPink', label: 'Soft Pink' },
+          { value: 'PaleIndigo', label: 'Pale Indigo' },
+          { value: 'MintGreen', label: 'Mint Green' },
+          { value: 'Peach', label: 'Peach' },
+          { value: 'SoftTeal', label: 'Soft Teal' },
+        ],
+        description: 'Select subtle background color for the course card',
+      },
+      instructor: {
+        description: 'Course instructor name',
+      },
+      isPremium: {
+        description: 'Is this a premium course? (usually true for paid courses)',
+      },
+      isPublished: {
+        description: 'Is course published and visible to users?',
+      },
+      createdAt: {
+        isVisible: { edit: false, new: false },
+      },
+      updatedAt: {
+        isVisible: { edit: false, new: false },
+      },
+    },
+    actions: {
+      delete: {
+        guard: 'Are you sure you want to delete this course? This will also affect enrollments and progress records.',
+      },
+    },
+  },
+},
+    
 
       // Course section resources
       {
